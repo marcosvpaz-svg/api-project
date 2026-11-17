@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integração CRUD - Com Foto de Perfil</title>
+
+    <style>
+
+    </style>
+</head>
+
+<body>
+
+      <div class="container">
+           <h1>Gerenciamento de Usuários</h1>
+
+        <!-- FORMULÁRIO COM SUPORTE A UPLOAD -->
+           <form id="userForm" enctype="multipart/form-data">
+
+                   <input type="hidden" id="userId" name="id">
+
+                 <div class="form-group">
+               <label for="foto">Nome Completo</label>
+             <input type="text" id="nome" name="nome" required placeholder=Ex: Maria Silva">
+      </div>
+
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" required placeholder="Ex: maria@email.com">
+
+      </div>
+      <div class="form-group">
+        <label for="foto">Foto de Perfil</label>
+        <input type="file" id="foto" name="foto" accept="image/*">
+      </div>
+
+      <div class="actions">
+        <button type="submit" id="btnSubmit" class="btn-submit">Salvar Usuário</button>
+        <button type="button" id="btnCancel" class="btn-cancel" onclick="resetForm()">Cancelar</button>
+      </div>
+
+  </form>
+
+  <h2>Usuários Cadastrados</h2>
+  <!-- TABELA EXIBINDO A FOTO -->
+  <table>
+    <thead>
+      <tr>
+        <th>Foto</th>
+        <th>Nome</th>
+        <th>E-mail</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="userTableBody">
+      <!-- PREENCHIDO DINAMICAMENTE VIA JS -->
+    </tbody>
+  </table>
+
+</div>
+
+<!-- Tag HTML que inicia o bloco de código JavaScript -->
+<script>
+// Declara uma constante com o endereço/nome do arquivo PHP que responde às requisições (API)
+const API_URL = 'api.php';
+
+// Fica aguardando todo o HTML da página terminar de carregar ('DOMContentLoaded').
+// Assim que estiver pronto, chama automaticamente a função 'fetchUsers' para preencher a tabela.
+document.addEventListener('DOMContentLoaded', fetchUsers);
+
+// Declara uma função assíncrona ('async'), permitindo usar 'await' para esperar respostas da rede sem travar a tela
+async function fetchUsers() {
+  // Inicia o bloco 'try': tenta executar o código normalmente; se houver falha, pula para o 'catch'
+  try {
+    // Faz uma requisição HTTP (GET) para o 'api.php' e aguarda ('await') a resposta do servidor
+    const res = await fetch(API_URL);
+
+    // Converte o texto JSON recebido do PHP em um array de objetos JavaScript
+    // (CORREÇÃO: alterado de 'res.jason()' para 'res.json()')
+    const users = await res.json();
+
+    // Busca no HTML o elemento <tbody> da tabela pelo ID 'userTableBody' e guarda na constante 'tbody'
+    const tbody = document.getElementById('userTableBody');
+
+    // Limpa todo o conteúdo atual dentro do <tbody> para não duplicar linhas ao recarregar a lista
+    tbody.innerHTML = '';
+
+    // Verifica se a lista de usuários retornada pelo banco de dados está vazia (tamanho igual a 0)
+    // (CORREÇÃO: alterado de 'user.length' para 'users.length' no plural, que é o nome da variável)
+    if (users.length === 0) {
+      // Insere uma linha ocupando as 4 colunas ('colspan="4"') avisando que não há registros
+      // (CORREÇÃO: no CSS inline, alterado de 'text-align=center;' para 'text-align:center;')
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum Usuário encontrado</td></tr>';
+      // Encerra a execução da função aqui mesmo, pois não há usuários para listar abaixo
+      return;
+    }
+
+    // Percorre cada usuário ('u') presente dentro do array 'users'
+    users.forEach(u => {
+      // Operador ternário (if/else resumido): se 'u.foto' existir, usa o caminho dela; senão, usa uma imagem padrão
+      const fotoSrc = u.foto ? u.foto : 'https://via.placeholder.com/50?text=Sem+FOTO';
+
+      // Adiciona (+=) uma nova linha HTML (<tr>) ao final do <tbody> usando Template Strings (` `)
+      tbody.innerHTML += `
+        <tr>
+          <!-- Primeira coluna: centraliza e exibe a foto do usuário -->
+          <!-- (CORREÇÃO: alterado de 'classe="avaliar"' para 'class="avaliar"') -->
+          <td style="text-align:center;"><img src="${fotoSrc}" class="avaliar" alt="Foto"></td>
+
+          <!-- Segunda coluna: exibe o nome usando uma função de segurança contra ataques XSS -->
+          <!-- (CORREÇÃO: alterado de 'scapeHtml' para 'escapeHtml') -->
+          <td>${escapeHtml(u.nome)}</td>
+
+          <!-- Terceira coluna: exibe o e-mail também protegido com 'escapeHtml' -->
+          <!-- (CORREÇÃO: alterado de 'scapeHtml' para 'escapeHtml') -->
+          <td>${escapeHtml(u.email)}</td>
+
+          <!-- Quarta coluna: botões de ação (Editar e Excluir) -->
+          <td>
+            <!-- Botão Editar: ao clicar ('onclick'), chama 'setEditMode' passando o ID, nome e e-mail do usuário -->
+            <!-- (CORREÇÃO: faltava abrir a chave '{' em '${escapeJs(u.nome)}') -->
+            <button class="btn-edit" onclick="setEditMode(${u.id}, '${escapeJs(u.nome)}', '${escapeJs(u.email)}')">Editar</button>
+
+            <!-- Botão Excluir: ao clicar ('onclick'), chama 'deleteUser' passando apenas o ID do usuário -->
+            <button class="btn-delete" onclick="deleteUser(${u.id})">Excluir</button>
+          </td>
+        </tr>
+      `;
+    });
+
+  // Captura qualquer erro ocorrido dentro do bloco 'try' (ex: falha de conexão ou erro no PHP)
+  // (CORREÇÃO: adicionado '(error)' após o 'catch' para que o console.error consiga ler a variável)
+  } catch (error) {
+    // Exibe a mensagem e os detalhes técnicos do erro no console do navegador (tecla F12)
+    console.error('Erro ao carregar usuários:', error);
+  }
+}
+
+//=============================
+// 2. CRIAÇÃO (CREATE/UPDATE via FormData)
+//=============================
+
+// Fecha o bloco de código JavaScript
+</script>
+<!-- Fecha o corpo da página HTML -->
+</body>
+<!-- Fecha o documento HTML -->
+</html>
