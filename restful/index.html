@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integração CRUD - Com Foto de Perfil</title>
+
+  <link rel="stylesheet" href="style.css">
+   <style>
+   /* CONFIGURAÇÕES GERAIS */
+* {
+   margin: 0;
+   padding: 0;
+   box-sizing: border-box;
+}
+
+body {
+   font-family: Arial, Helvetica, sans-serif;
+   background: #f4f6f8;
+   color: #333;
+   padding: 30px 15px;
+}
+
+/* CONTAINER */
+.container {
+   max-width: 1100px;
+   width: 100%;
+   margin: 0 auto;
+   padding: 35px;
+   background: #fff;
+   border-radius: 8px;
+   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* TÍTULOS */
+h1 {
+   font-size: 30px;
+   color: #444;
+   margin-bottom: 35px;
+   font-weight: 700;
+}
+
+h2 {
+   font-size: 25px;
+   color: #444;
+   margin-top: 45px;
+   margin-bottom: 20px;
+   font-weight: 700;
+}
+
+/* FORMULÁRIO */
+.form-group {
+   margin-bottom: 22px;
+}
+
+.form-group label {
+   display: block;
+   font-size: 15px;
+   font-weight: bold;
+   color: #444;
+   margin-bottom: 9px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"] {
+   width: 100%;
+   height: 42px;
+   padding: 10px 12px;
+   border: 1px solid #ced4da;
+   border-radius: 4px;
+   background: #fff;
+   color: #333;
+   font-size: 14px;
+   outline: none;
+   transition: 0.2s;
+}
+
+.form-group input:focus {
+   border-color: #80bdff;
+   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+.form-group input::placeholder {
+   color: #999;
+}
+
+/* CAMPO DE FOTO */
+.form-group input[type="file"] {
+   width: 100%;
+   padding: 8px;
+   font-size: 14px;
+   color: #555;
+   cursor: pointer;
+}
+
+/* BOTÕES DO FORMULÁRIO */
+.actions {
+   display: flex;
+   align-items: center;
+   gap: 10px;
+   margin-top: 10px;
+}
+
+button {
+   border: none;
+   border-radius: 4px;
+   padding: 11px 20px;
+   font-size: 14px;
+   font-weight: 600;
+   cursor: pointer;
+   transition: 0.2s;
+}
+
+.btn-submit {
+   background: #28a745;
+   color: white;
+}
+
+.btn-submit:hover {
+   background: #218838;
+}
+
+.btn-cancel {
+   display: none;
+   background: #6c757d;
+   color: white;
+}
+
+.btn-cancel:hover {
+   background: #5a6268;
+}
+
+/* TABELA */
+table {
+   width: 100%;
+   border-collapse: collapse;
+   background: white;
+   margin-top: 10px;
+}
+
+thead {
+   background: #b9bdbd;
+   color: white;
+}
+
+th {
+   padding: 15px 12px;
+   text-align: left;
+   font-size: 15px;
+   font-weight: bold;
+}
+
+td {
+   padding: 13px 12px;
+   border-bottom: 1px solid #e5e5e5;
+   font-size: 14px;
+   color: #555;
+   vertical-align: middle;
+}
+
+/* EFEITO DAS LINHAS */
+tbody tr {
+   transition: background 0.2s;
+}
+
+tbody tr:hover {
+   background: #f5f5f5;
+}
+
+tbody tr:last-child td {
+   border-bottom: none;
+}
+
+/* FOTO DOS USUÁRIOS */
+.avaliar {
+   width: 50px;
+   height: 50px;
+   object-fit: cover;
+   border-radius: 50%;
+   border: 2px solid #e5e5e5;
+   display: inline-block;
+}
+
+/* BOTÃO EDITAR */
+.btn-edit {
+   background: #17a2b8;
+   color: white;
+   padding: 9px 16px;
+   margin-right: 5px;
+}
+
+.btn-edit:hover {
+   background: #138496;
+}
+
+/* BOTÃO EXCLUIR */
+.btn-delete {
+   background: #dc7b7b;
+   color: white;
+   padding: 9px 16px;
+}
+
+.btn-delete:hover {
+   background: #c82333;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 768px) {
+
+   body {
+       padding: 15px 10px;
+   }
+
+   .container {
+       padding: 20px 15px;
+   }
+
+   h1 {
+       font-size: 24px;
+   }
+
+   h2 {
+       font-size: 21px;
+   }
+
+   table {
+       min-width: 600px;
+   }
+
+   .container {
+       overflow-x: auto;
+   }
+
+   th, td {
+       padding: 10px 8px;
+   }
+
+   button {
+       padding: 9px 12px;
+       font-size: 12px;
+   }
+}
+
+@media (max-width: 480px) {
+
+   .container {
+       padding: 15px 10px;
+   }
+
+   h1 {
+       font-size: 21px;
+   }
+
+   h2 {
+       font-size: 19px;
+   }
+
+   .form-group label {
+       font-size: 14px;
+   }
+
+   .form-group input[type="text"],
+   .form-group input[type="email"] {
+       font-size: 13px;
+   }
+}
+   </style>
+</head>
+
+<body>
+
+      <div class="container">
+           <h1>Gerenciamento de Usuários</h1>
+
+        <!-- FORMULÁRIO COM SUPORTE A UPLOAD -->
+           <form id="userForm" enctype="multipart/form-data">
+
+                   <input type="hidden" id="userId" name="id">
+
+                 <div class="form-group">
+               <label for="nome">Nome Completo</label>
+             <input type="text" id="nome" name="nome" required placeholder="Ex: Maria Silva">
+      </div>
+
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" required placeholder="Ex: maria@email.com">
+
+      </div>
+      <div class="form-group">
+        <label for="foto">Foto de Perfil</label>
+        <input type="file" id="foto" name="foto" accept="image/*">
+      </div>
+
+      <div class="actions">
+        <button type="submit" id="btnSubmit" class="btn-submit">Salvar Usuário</button>
+        <button type="button" id="btnCancel" class="btn-cancel" onclick="resetForm()">Cancelar</button>
+      </div>
+
+  </form>
+
+  <h2>Usuários Cadastrados</h2>
+  <!-- TABELA EXIBINDO A FOTO -->
+  <table>
+    <thead>
+      <tr>
+        <th>Foto</th>
+        <th>Nome</th>
+        <th>E-mail</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="userTableBody">
+      <!-- PREENCHIDO DINAMICAMENTE VIA JS -->
+    </tbody>
+  </table>
+
+</div>
+
+<!-- Tag HTML que inicia o bloco de código JavaScript -->
+<script>
+// Declara uma constante com o endereço/nome do arquivo PHP que responde às requisições (API)
+const API_URL = 'api.php';
+
+// Fica aguardando todo o HTML da página terminar de carregar ('DOMContentLoaded').
+// Assim que estiver pronto, chama automaticamente a função 'fetchUsers' para preencher a tabela.
+document.addEventListener('DOMContentLoaded', fetchUsers);
+
+// Declara uma função assíncrona ('async'), permitindo usar 'await' para esperar respostas da rede sem travar a tela
+async function fetchUsers() {
+  // Inicia o bloco 'try': tenta executar o código normalmente; se houver falha, pula para o 'catch'
+  try {
+    // Faz uma requisição HTTP (GET) para o 'api.php' e aguarda ('await') a resposta do servidor
+    const res = await fetch(API_URL);
+
+    // Converte o texto JSON recebido do PHP em um array de objetos JavaScript
+    // (CORREÇÃO: alterado de 'res.jason()' para 'res.json()')
+    const users = await res.json();
+
+    // Busca no HTML o elemento <tbody> da tabela pelo ID 'userTableBody' e guarda na constante 'tbody'
+    const tbody = document.getElementById('userTableBody');
+
+    // Limpa todo o conteúdo atual dentro do <tbody> para não duplicar linhas ao recarregar a lista
+    tbody.innerHTML = '';
+
+    // Verifica se a lista de usuários retornada pelo banco de dados está vazia (tamanho igual a 0)
+    // (CORREÇÃO: alterado de 'user.length' para 'users.length' no plural, que é o nome da variável)
+    if (users.length === 0) {
+      // Insere uma linha ocupando as 4 colunas ('colspan="4"') avisando que não há registros
+      // (CORREÇÃO: no CSS inline, alterado de 'text-align=center;' para 'text-align:center;')
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum Usuário encontrado</td></tr>';
+      // Encerra a execução da função aqui mesmo, pois não há usuários para listar abaixo
+      return;
+    }
+
+    // Percorre cada usuário ('u') presente dentro do array 'users'
+    users.forEach(u => {
+      // Operador ternário (if/else resumido): se 'u.foto' existir, usa o caminho dela; senão, usa uma imagem padrão
+      const fotoSrc = u.foto ? u.foto : 'https://via.placeholder.com/50?text=Sem+FOTO';
+
+      // Adiciona (+=) uma nova linha HTML (<tr>) ao final do <tbody> usando Template Strings (` `)
+      tbody.innerHTML += `
+        <tr>
+          <td style="text-align:center;"><img src="${fotoSrc}" class="avaliar" alt="Foto"></td>
+
+          <td>${escapeHtml(u.nome)}</td>
+
+          <td>${escapeHtml(u.email)}</td>
+
+          <td>
+            <button class="btn-edit" onclick="setEditMode(${u.id}, '${escapeJs(u.nome)}', '${escapeJs(u.email)}')">Editar</button>
+
+            <button class="btn-delete" onclick="deleteUser(${u.id})">Excluir</button>
+          </td>
+        </tr>
+      `;
+    });
+
+  // Captura qualquer erro ocorrido dentro do bloco 'try' (ex: falha de conexão ou erro no PHP)
+  // (CORREÇÃO: adicionado '(error)' após o 'catch' para que o console.error consiga ler a variável)
+  } catch (error) {
+    // Exibe a mensagem e os detalhes técnicos do erro no console do navegador (tecla F12)
+    console.error('Erro ao carregar usuários:', error);
+  }
+}
+
+//=============================
+// 2. CRIAÇÃO (CREATE/UPDATE via FormData)
+//=============================
+
+// Fecha o bloco de código JavaScript
+
+// Busca o formulário pelo ID 'userForm' e adiciona um evento para detectar o envio
+document.getElementById('userForm').addEventListener('submit', async (e) => {
+
+  // Impede que a página seja recarregada automaticamente ao enviar o formulário
+  e.preventDefault();
+
+  // Cria um objeto FormData para capturar os dados do formulário, incluindo a foto
+  const formData = new FormData(document.getElementById('userForm'));
+
+  // Inicia o bloco try para tentar executar a requisição ao servidor
+  try {
+
+           // Envia os dados para o arquivo PHP utilizando o método POST
+           const res = await fetch(API_URL,{
+             method: 'POST',
+             body: formData
+           });
+
+           // Converte a resposta recebida do PHP para o formato JSON
+           const data = await res.json();
+
+           // Verifica se a requisição foi realizada com sucesso
+           if (res.ok){
+
+             // Limpa os campos do formulário após salvar o usuário
+             resetForm();
+
+             // Atualiza a tabela para mostrar os dados mais recentes
+             fetchUsers();
+
+           }else{
+
+             // Exibe a mensagem de erro retornada pelo PHP
+             alert(data.erro || 'Erro ao processar a requisição');
+           }
+
+  // Captura possíveis erros durante o envio dos dados
+  } catch (error){
+
+      // Mostra os detalhes do erro no console do navegador
+      console.error('Erro na requisição', error);
+    }
+
+// Finaliza o evento de envio do formulário
+});
+//==============================
+// 3. EXCLUSÂO (DELETE)
+//==============================
+async function deleteUser(id){
+  // exibe uma janela de confirmação no navegador e interrompe a execução da função caso o usuário clique em "Cancelar".
+  if(!confirm('Tem certeza que deseja excluir este usuário?')) return;
+  // "tenta" executar um código que pode falhar sem deixar o programa travar de repente
+  try {
+    //solicita a exclusão de um registro específico identificado pelo valor da variável
+    const res = await fetch(`${API_URL}?id=${id}`, {method:'DELETE'});
+    //Essa linha lê o corpo da resposta da API e o converte de JSON para um objeto JavaScript utilizável no seu código.
+    const data = await res.json();
+    //Essa linha verifica se a requisição HTTP foi bem-sucedida, retornando true sempre que o código de status da resposta estiver entre 200 e 299.
+    if (res.ok) {
+      //Essa linha chama novamente a função fetchUsers para recarregar a lista de usuários do banco de dados e atualizar a tela sem o item que acabou de ser excluído.
+      fetchUsers();
+      //Essa estrutura } else { encerra o bloco de sucesso (if (res.ok)) e inicia o tratamento de falha, executando apenas quando o servidor responde com um código de erro (como 400, 401, 404 ou 500).
+    }else{
+      // Exibe a mensagem de erro retornada pelo PHP
+      alert(data.erro || 'Erro ao excluir usuário');
+    }
+    //encerra o bloco try e inicia a captura de falhas críticas, executando apenas se ocorrer uma exceção (erro de execução) antes mesmo de receber uma resposta válida da API.
+} catch {
+  //Essa linha imprime uma mensagem de erro destacada em vermelho no console do navegador, exibindo o texto 'Erro ao excluir:' seguido pelos detalhes técnicos da falha armazenados na variável error.
+    console.error('Erro ao excluir:', error)
+  }
+}
+
+//==============================
+// 4.AUXILIARES
+//==============================
+//Define a função e recebe os três dados do usuário que você clicou para editar.
+ function setEditMode(id,nome,email){
+   // Guarda o ID do usuário em um campo (geralmente um <input type="hidden">) para o formulário saber qual registro atualizar no banco depois.
+   document.getElementById('userId').value = id;
+   //Preenche a caixa de texto do nome com o nome atual do usuário.
+   document.getElementById('nome').value = nome;
+   //Preenche a caixa de texto do e-mail com o e-mail atual do usuário.
+   document.getElementById('email').value = email;
+   //Muda o texto do botão principal (que antes provavelmente dizia "Cadastrar" ou "Salvar") para indicar que agora ele vai atualizar um cadastro.
+   document.getElementById('btnSubmit').innerText = 'Atualizar usuário';
+   //• Torna visível o botão "Cancelar", permitindo que o usuário desista da edição e volte o formulário ao modo de cadastro normal.
+   document.getElementById('btnCancel').style.display = 'inline-block';
+ }
+ //Ela é chamada ao clicar em "Cancelar" ou logo após salvar/atualizar um usuário.
+ function resetForm(){ // Função para limpar o formulário
+   document.getElementById('userForm').reset(); // Limpa os campos do formulário
+   document.getElementById('userId').value = ''; // Limpa o ID do usuário
+   document.getElementById('btnSubmit').innerText = 'Salvar Usuário'; // Altera o texto do botão
+   document.getElementById('btnCancel').style.display = 'none'; // Esconde o botão cancelar
+ }
+ function escapeHtml(str){ // Função para proteger textos HTML
+   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); // Substitui caracteres especiais
+ }
+ function escapeJs(str){ // Função para proteger textos JavaScript
+   return str.replace(/'/g, "\\'"); // Adiciona uma barra antes das aspas simples
+ }
+</script>
+<!-- Fecha o corpo da página HTML -->
+</body>
+<!-- Fecha o documento HTML -->
+</html>
